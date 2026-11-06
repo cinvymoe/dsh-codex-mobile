@@ -576,12 +576,15 @@ window.__ModuleLoader__.load({
     height: 100% !important;
     padding: 0 !important;
   }
+  /* The label box is as tall as the 32px trigger, so a 28px line box sits its
+     single line 2px above the row the plus and send glyphs share. Match the
+     line box to the box so the name centres with them. */
   html.${HTML_CLASS} [class*="uV2eYG_row"] [class*="_7KE1Ra_triggerLabel"] {
     white-space: nowrap !important;
     display: block !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-    line-height: 28px !important;
+    line-height: 32px !important;
     font-size: 13px !important;
     text-align: left !important;
   }
@@ -1021,9 +1024,12 @@ window.__ModuleLoader__.load({
     min-height: 32px !important;
   }
   /* The home workspace and mode chips are 28px tall, and they are the first
-     controls a thumb reaches on the landing view. */
-  html.${HTML_CLASS} [class*="pXSMma_workspace"],
-  html.${HTML_CLASS} [class*="cubgiG_seat"] {
+     controls a thumb reaches on the landing view. The label inside each chip
+     carries the same class prefix, so it has to be excluded: a 32px label box
+     under a 20px line box paints its single line at the box top and the name
+     reads a third of the chip above the centre line. */
+  html.${HTML_CLASS} [class*="pXSMma_workspace"]:not([class*="Label"]),
+  html.${HTML_CLASS} [class*="cubgiG_seat"]:not([class*="Label"]) {
     height: 32px !important;
     min-height: 32px !important;
   }
@@ -1228,7 +1234,7 @@ window.__ModuleLoader__.load({
     gap: 2px !important;
     flex-wrap: wrap !important;
   }
-  html.${HTML_CLASS} [class*="pXSMma_workspace"],
+  html.${HTML_CLASS} [class*="pXSMma_workspace"]:not([class*="Label"]),
   html.${HTML_CLASS} [class*="cubgiG_menuAnchor"] {
     flex: none !important;
   }
