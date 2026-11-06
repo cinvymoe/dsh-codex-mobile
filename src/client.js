@@ -653,7 +653,12 @@ window.__ModuleLoader__.load({
      the header and let the header keep its row, so the chip stays visible and
      stays a way in and out. The offset comes from the measured header, because
      the header grows a track when a team chip exists. */
-  html.${HTML_CLASS} [class*="P3OORG_panel"][data-sidebar-right-open] {
+  /* The geometry cannot hang off data-sidebar-right-open: the attribute drops on
+     the first frame of the close animation, so the panel would snap back to the
+     host's full-frame box for that frame and the closing slide would start from
+     a different place than the opening one ended. Apply it to the panel itself
+     and let the host's own transform drive the slide. */
+  html.${HTML_CLASS} [data-sidebar-right-panel] {
     position: fixed !important;
     left: 0 !important;
     top: var(${HEADER_BOTTOM_VAR}, 0px) !important;
@@ -664,6 +669,21 @@ window.__ModuleLoader__.load({
     height: calc(var(${VIEWPORT_VAR}, 100dvh) - var(${HEADER_BOTTOM_VAR}, 0px)) !important;
     z-index: 70 !important;
     pointer-events: auto !important;
+  }
+  /* A closed panel keeps the same box, so the host's translateX slide leaves
+     the viewport instead of collapsing the element; its own pointer-events:none
+     and hidden dock children already keep it inert. */
+  html.${HTML_CLASS} [data-sidebar-right-panel]:not([data-sidebar-right-open]) {
+    pointer-events: none !important;
+  }
+  /* Opening the panel unmounts the header's own right-sidebar button, and the
+     empty header it leaves behind is only as tall as that button was. The panel
+     keeps the offset the closed layout measured, so the shrunk header would end
+     above it and show a strip of the page in between. Hold the blank header at
+     that same offset while the panel is open; the session header keeps its own
+     height because the tab strip holds it open. */
+  html.${HTML_CLASS}:has([data-sidebar-right-panel][data-sidebar-right-open]) header[class*="wSkVaW_headerBlank"] {
+    min-height: var(${HEADER_BOTTOM_VAR}, 0px) !important;
   }
 
   /* ---- settings rows: label above control instead of a squeezed column ---- */
@@ -1301,6 +1321,12 @@ window.__ModuleLoader__.load({
     grid-column: 1 / -1 !important;
     grid-row: 1 !important;
   }
+  /* The host hides the closed drawer with a delayed visibility transition,
+     which is what keeps the column on screen for the slide-out. A transform-only
+     transition here would drop that delay, so the column would vanish on the
+     first frame and the slide would happen out of sight. Keep the delay on the
+     closing state and clear it on the open one, or the drawer would stay
+     invisible while it slides in. */
   html.${HTML_CLASS}:not(.${OTHER_SHELL_CLASS}) div:has(> [data-shell-overlay]) > [class*="_sidebarCol"] {
     position: fixed !important;
     left: 0 !important;
@@ -1309,7 +1335,8 @@ window.__ModuleLoader__.load({
     width: min(100%, 360px) !important;
     max-width: 100vw !important;
     transform: translateX(-105%) !important;
-    transition: transform .24s ease !important;
+    transition: transform .24s ease, visibility 0s linear .24s !important;
+    visibility: hidden !important;
     z-index: 72 !important;
     background: var(--dsw-alias-bg-layer-1, #fff) !important;
     box-shadow: 0 8px 40px rgba(0, 0, 0, .35) !important;
@@ -1319,6 +1346,13 @@ window.__ModuleLoader__.load({
   }
   html.${HTML_CLASS}:not(.${OTHER_SHELL_CLASS}) div:has(> [data-shell-overlay]):not([data-sidebar-collapsed]) > [class*="_sidebarCol"] {
     transform: translateX(0) !important;
+    transition: transform .24s ease, visibility 0s linear 0s !important;
+    visibility: visible !important;
+  }
+  /* A resize or a remount collapses the drawer without animating it; the host
+     marks that case and nothing should slide. */
+  html.${HTML_CLASS}:not(.${OTHER_SHELL_CLASS}) div:has(> [data-shell-overlay])[data-sidebar-instant] > [class*="_sidebarCol"] {
+    transition: none !important;
   }
   html.${HTML_CLASS}:not(.${OTHER_SHELL_CLASS}) div:has(> [data-shell-overlay]) > [class*="_sidebarCol"] > * {
     width: 100% !important;
@@ -1697,6 +1731,11 @@ window.__ModuleLoader__.load({
           root.style.removeProperty(HEADER_BOTTOM_VAR)
           return
         }
+        // The right panel is laid out from this offset, and opening it unmounts
+        // the header's corner button, which shrinks the header. Measuring while
+        // it is open would move the panel's own top edge on every toggle, so
+        // keep the offset the closed layout produced.
+        if (document.querySelector('[data-sidebar-right-panel][data-sidebar-right-open]')) return
         const header = document.querySelector('header[class*="wSkVaW_header"]')
         if (!header) {
           root.style.removeProperty(HEADER_BOTTOM_VAR)
@@ -1715,7 +1754,7 @@ window.__ModuleLoader__.load({
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['class', 'style', 'data-team-chat-entry'],
+        attributeFilter: ['class', 'style', 'data-team-chat-entry', 'data-sidebar-right-open'],
       })
       const mq = window.matchMedia(MOBILE_MQ)
       mq.addEventListener('change', publish)
