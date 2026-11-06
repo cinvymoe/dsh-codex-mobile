@@ -1212,6 +1212,50 @@ window.__ModuleLoader__.load({
     align-items: flex-start !important;
     padding-top: clamp(16px, 6vh, 56px) !important;
   }
+  /* ---- hero workspace row: 32px controls on one baseline ---- */
+  /* The row sets a workspace chip, a mode chip and the branch picker side by
+     side, but the picker is a column of two 28px rows pinned to the right edge:
+     the branch sits above the row's centre line and the worktree toggle below
+     it, while both chips centre themselves, so no two controls share a line. The
+     mode chip also loses its label to an ellipsis, because the row squeezes its
+     share to 56px where the name needs 52. Lay the picker out as a row, give
+     every control one 32px box, stop the chips from shrinking and let the row
+     wrap when the four no longer fit: at 420px and wider they share one line,
+     below that the branch pair drops to its own line, right-aligned, and every
+     label stays whole. */
+  html.${HTML_CLASS} [class*="wSkVaW_heroWorkspaceRow"] {
+    align-items: center !important;
+    gap: 2px !important;
+    flex-wrap: wrap !important;
+  }
+  html.${HTML_CLASS} [class*="pXSMma_workspace"],
+  html.${HTML_CLASS} [class*="cubgiG_menuAnchor"] {
+    flex: none !important;
+  }
+  html.${HTML_CLASS} [class*="wSkVaW_heroOptions"] {
+    flex: 0 1 auto !important;
+    margin-left: auto !important;
+    height: auto !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+  }
+  html.${HTML_CLASS} [class*="aL4l1a_root"] {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 2px !important;
+  }
+  html.${HTML_CLASS} [class*="aL4l1a_current"],
+  html.${HTML_CLASS} [class*="aL4l1a_toggle"] {
+    height: 32px !important;
+    min-height: 32px !important;
+  }
+  html.${HTML_CLASS} [class*="aL4l1a_current"] {
+    padding: 0 4px !important;
+  }
+  html.${HTML_CLASS} [class*="aL4l1a_toggle"] {
+    padding: 0 2px !important;
+    gap: 2px !important;
+  }
 
   /* The desktop sidebar carries a 12px margin, which offsets a fixed drawer
      and pushes its right edge past the viewport. Full-bleed it, and cap it
