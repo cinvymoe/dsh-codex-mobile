@@ -1,0 +1,32 @@
+{
+  "name": "dsh-codex-mobile",
+  "version": "0.1.0",
+  "description": "Mobile (<=1023px) layout fixes for @michengai/dsh-codex-ui on the DeepSeek Harness web GUI: session header rows, composer stats/model label, message action row, right sidebar overlay.",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./client": "./src/client.js",
+    "./package.json": "./package.json"
+  },
+  "license": "MIT",
+  "private": true,
+  "files": [
+    "src",
+    "cordis.patch.yml",
+    "package.json",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime"
+      ]
+    }
+  }
+}
