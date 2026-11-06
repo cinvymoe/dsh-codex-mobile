@@ -7,7 +7,7 @@
  * title to 0 width, truncates the composer statistics and model label, pushes
  * message timestamps off-screen, and leaves the right sidebar on a zero-width
  * grid column. This client half supplies those missing rules plus, when no other
- * mobile shell plugin owns the frame, an off-canvas sidebar drawer and a FAB.
+ * mobile shell plugin owns the frame, the overlay geometry of the Host drawer.
  */
 window.__ModuleLoader__.load({
   id: 'dsh-codex-mobile',
@@ -1790,8 +1790,8 @@ window.__ModuleLoader__.load({
         return () => document.removeEventListener('click', onDocumentClick, true)
       }, [state.mobile, toggleSidebar])
 
-      // Escape closes the drawer; the host shell only binds it while another
-      // mobile plugin owns the chrome.
+      // Escape closes the drawer. The Host binds it only while another mobile
+      // shell plugin owns the chrome, so the standalone frame needs this one.
       React.useEffect(() => {
         if (!state.mobile || !ownsGeometry()) return
         const onKey = (event) => {

@@ -45,19 +45,19 @@ never affects desktop layout.
 | Drawer opener | The host pins a 28px drawer button into the frame's top-left corner, where it holds a fixed band of every page for one small control | The seat becomes a 44px floating ball the thumb can drag anywhere; its spot is stored per device, clamped to the viewport, and a drag never counts as the tap that opens the drawer |
 | Drawer foot | The drawer splits its leftover height between the workspace list and the account area, so the account menu lands halfway down with a blank block underneath, and the sidebar root asks for `height:100%` inside a padded column so it also scrolls 26px past the viewport | The workspace list takes all the leftover height, the account area stays at its own size against the bottom edge, and the root sizes itself from its parent |
 | Drawer rows | The lan-access mobile stylesheet turns the "more" section into a row, so the four entries it reveals pack into an 84px column beside the trigger and each title ellipsizes to two characters; two plugins also hide the host nav glyph and paint a `::before` stand-in, which shifts those rows 24px right of the rest of the list | The revealed entries stack under the trigger like every other row, and the stand-in is dropped so all rows share one icon column and one row width |
-
 | Command menu rows | The command list behind the composer's plus button is laid out at 34px per row, but the lan-access mobile stylesheet flattens every button inside the composer card to a 28px minimum, so each row shrinks below a fingertip and the last rows fall out of the visible viewport | Command rows keep a 32px floor inside the composer card; the list keeps its own scroll viewport |
 | Right-bar controls | The right-bar panel header keeps three 28px window controls and a 20px shell picker, and they are the only ways to leave the panel on a phone | Those four controls paint a 32px box |
 | Tap targets | Compact buttons are 28px tall and the icon-only variants drop to a 22px square, while the skills source row is a 17px line beside a 36x20 switch, the Superagent buttons are 28px, the home workspace and mode chips are 28px, and the archive star is a 10px glyph in a 16px button — all below a fingertip | Short buttons keep a 32px height, icon-only ones paint a 32px square, the source row and its switch reach 32px, the Superagent buttons and links reach 32px, the home chips reach 32px, and the star gets a 32px box |
 
 ## Coexistence with `dsh-mobile-hanui`
 
-The Host now ships its own drawer, mask and drawer opener, so this plugin draws
-no chrome of its own: it repaints the Host drawer and owns the focus and
-dismissal rules. `dsh-mobile-hanui` predates that and still supplies its own
-drawer and FAB for the stock shell; when it is present this plugin detects its
-FAB (`.dshMobMenu`) and leaves the chrome to it, contributing only the
-Codex-specific rules above.
+The Host ships its own drawer, mask and drawer opener, so this plugin draws no
+chrome of its own: it repaints the Host drawer and owns the focus and dismissal
+rules. `dsh-mobile-hanui` predates that and still supplies its own drawer and
+FAB for the stock shell. It marks `<html>` with `dsh-mobile-shell`, so the
+frame-geometry rules and the dismissal and focus effects are scoped to
+`:not(.dsh-mobile-shell)` and stay out of its way; the Codex-specific rules above
+apply either way.
 
 ## Drawer dismissal
 
@@ -74,8 +74,11 @@ Host mask and Escape also close it.
 ## Install
 
 ```sh
-# from a Harness profile session
-plugin_manager install_bundle(target="/root/.dsh/external/dsh-codex-mobile")
+# from a Harness profile session, installing the published bundle
+plugin_manager install_bundle(target="github:cinvymoe/dsh-codex-mobile")
+
+# or from a local checkout
+plugin_manager install_bundle(target="/path/to/dsh-codex-mobile")
 ```
 
 Or add the bundle manually to the profile's `dsh.profile.bundles` list.
@@ -84,6 +87,7 @@ Or add the bundle manually to the profile's `dsh.profile.bundles` list.
 
 - `src/index.js` — Host half; no Host-side behavior, so `apply()` is empty.
 - `src/client.js` — Client half; registers the stylesheet, publishes the
-  measured visual viewport height as `--dcm-viewport-height`, and keeps the
-  drawer dismissal and composer-focus rules on the `shell.overlay` slot.
+  measured visual viewport height as `--dcm-viewport-height` and the measured
+  header bottom as `--dcm-header-bottom`, and keeps the drawer dismissal,
+  composer-focus and floating-ball rules on the `shell.overlay` slot.
 - `cordis.patch.yml` — Bundle patch that inserts `codex-mobile` into the profile.
