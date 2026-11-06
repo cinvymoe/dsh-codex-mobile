@@ -1073,6 +1073,15 @@ window.__ModuleLoader__.load({
     height: 32px !important;
   }
 
+  /* ---- drawer tooltips: the overlay already covers the list ---- */
+  /* The host paints its tooltip in a portal above the drawer, so hovering the
+     collapse button in the drawer's top bar parks a bubble over the first row
+     of the list. A touch screen has no hover to explain, and the drawer covers
+     the page the tips describe, so drop the portal tooltip while it is open. */
+  html.${HTML_CLASS}:has([class*="pI_x6G_frame"]:not([data-sidebar-collapsed])) [role="tooltip"][data-portal] {
+    display: none !important;
+  }
+
   /* ---- drawer foot: pin the account menu to the bottom ---- */
   /* The drawer splits its leftover height between the workspace list and the
      account area, and each of them is a flex child with flex:1, so the account
@@ -1188,6 +1197,20 @@ window.__ModuleLoader__.load({
     max-width: 100% !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
+  }
+
+  /* ---- new-conversation hero: the headline belongs to the top ---- */
+  /* The hero centres its stack vertically inside the full height it is given.
+     That works on a desktop, where the stack is a headline over a 768px column
+     and the centring reads as a page composition. With no workspace chosen the
+     stack is one 46px headline and an empty body, so the centring leaves the
+     title alone in the middle of the screen and 278px of nothing between it and
+     the workspace row. Put the empty stack at the top with a margin that scales
+     with the viewport; once the suggestions render the stack is a real block
+     again and the host's centring is what it was written for. */
+  html.${HTML_CLASS} [class*="pXSMma_root"]:not(:has([class*="dcu-home-suggestions"])) {
+    align-items: flex-start !important;
+    padding-top: clamp(16px, 6vh, 56px) !important;
   }
 
   /* The desktop sidebar carries a 12px margin, which offsets a fixed drawer
@@ -1575,6 +1598,43 @@ window.__ModuleLoader__.load({
       }, 'dsh-codex-mobile: floating drawer opener')
     }
 
+    // A tap on the floating opener leaves the focus on that button, and the
+    // host's tooltip follows the focus rather than the hover, so the label that
+    // appeared while the drawer opened stays on screen after the drawer closes
+    // and floats over whatever page the user went to. Release the focus when the
+    // drawer collapses; the tooltip has no other reason to stay.
+    function installMobileDrawerFocus(ctx) {
+      const release = () => {
+        const active = document.activeElement
+        if (active instanceof HTMLElement && active.closest('[data-sidebar-opener]')) active.blur()
+      }
+      const observe = (frame) => {
+        if (!frame) return () => {}
+        const observer = new MutationObserver(() => {
+          if (frame.hasAttribute('data-sidebar-collapsed')) release()
+        })
+        observer.observe(frame, { attributes: true, attributeFilter: ['data-sidebar-collapsed'] })
+        return () => observer.disconnect()
+      }
+      let watched = frameOf()
+      let stop = observe(watched)
+      // The frame is remounted when the layout switches between the desktop
+      // sidebar and the mobile drawer, so follow it rather than the first node.
+      const watcher = new MutationObserver(() => {
+        const frame = frameOf()
+        if (!frame || frame === watched) return
+        stop()
+        watched = frame
+        stop = observe(frame)
+      })
+      watcher.observe(document.body, { childList: true, subtree: true })
+
+      ctx.effect(() => () => {
+        watcher.disconnect()
+        stop()
+      }, 'dsh-codex-mobile: drawer focus release')
+    }
+
     // The right panel starts below the session header, and the header's height
     // depends on what the session has: a team chip adds a track, and a blank
     // header is 16px while a session header is 82px. Measure it and publish the
@@ -1810,6 +1870,7 @@ window.__ModuleLoader__.load({
       ensureStyle()
       installMobileFontSizes(ctx)
       installMobileOrb(ctx)
+      installMobileDrawerFocus(ctx)
       installMobileHeaderHeight(ctx)
       ctx.effect(
         () =>
